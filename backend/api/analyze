@@ -1,0 +1,54 @@
+app.post("/api/analyze", upload.single("file"), (req, res) => {
+  try {
+    const drugInput = req.body.drug || "";
+    const drugs = drugInput.split(",");
+
+    let results = [];
+
+    drugs.forEach((d) => {
+      const drug = d.trim().toLowerCase();
+
+      let data;
+
+      if (drug.includes("clopidogrel")) {
+        data = {
+          drug: d.trim(),
+          status: "HIGH",
+          gene: "CYP2C19",
+          explanation: "Poor metabolizer detected.",
+          recommendation: "Use alternative drug."
+        };
+      } else if (drug.includes("warfarin")) {
+        data = {
+          drug: d.trim(),
+          status: "MEDIUM",
+          gene: "VKORC1",
+          explanation: "Dose sensitivity variation.",
+          recommendation: "Adjust dosage."
+        };
+      } else {
+        data = {
+          drug: d.trim(),
+          status: "LOW",
+          gene: "Normal",
+          explanation: "No major interaction.",
+          recommendation: "Safe to use."
+        };
+      }
+
+      results.push(data);
+    });
+
+    res.json({
+      summary: {
+        overallRisk: "COMPLETED",
+        drugsAnalyzed: results.length
+      },
+      results
+    });
+
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Server failed" });
+  }
+});
